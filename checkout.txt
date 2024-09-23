@@ -1,0 +1,41 @@
+import com.microsoft.playwright.*;
+
+public class SauceDemoCheckoutTest {
+    public static void main(String[] args) {
+        // Set up Playwright and launch the browser
+        try (Playwright playwright = Playwright.create()) {
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
+            BrowserContext context = browser.newContext();
+            Page page = context.newPage();
+
+            // Navigate to the SauceDemo website
+            page.navigate("https://www.saucedemo.com/");
+
+            // Login with credentials
+            page.locator("#user-name").fill("standard_user");
+            page.locator("#password").fill("secret_sauce");
+            page.locator("#login-button").click();
+
+            // Add multiple items to the cart
+            page.locator("#add-to-cart-sauce-labs-backpack").click();
+            page.locator("#add-to-cart-sauce-labs-bike-light").click();
+
+            // Go to the cart and proceed to checkout
+            page.locator(".shopping_cart_link").click();
+            page.locator("#checkout").click();
+
+            // Fill in checkout details
+            page.locator("#first-name").fill("paras");
+            page.locator("#last-name").fill("sharma");
+            page.locator("#postal-code").fill("160062");
+            page.locator("#continue").click();
+
+            // Validate checkout by getting the total amount
+            String totalAmount = page.locator(".summary_total_label").textContent();
+            System.out.println("Total Amount: " + totalAmount);
+
+            // Close the browser
+            browser.close();
+        }
+    }
+}

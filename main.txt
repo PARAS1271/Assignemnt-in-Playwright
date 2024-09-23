@@ -1,0 +1,43 @@
+import com.microsoft.playwright.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class SauceDemoPlaywrightTest {
+    public static void main(String[] args) {
+        // Set up Playwright and launch the browser
+        try (Playwright playwright = Playwright.create()) {
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
+            BrowserContext context = browser.newContext();
+            Page page = context.newPage();
+
+            // Navigate to the SauceDemo website
+            page.navigate("https://www.saucedemo.com/");
+
+            // Login with credentials
+            page.locator("#user-name").fill("visual_user");
+            page.locator("#password").fill("secret_sauce");
+            page.locator("#login-button").click();
+
+            // Select sorting "Name (Z to A)"
+            page.locator(".product_sort_container").selectOption("za");
+
+            // Get all product names after sorting
+            List<String> actualProductNames = page.locator(".inventory_item_name").allTextContents();
+
+            // Sort the product names for expected order (Z to A)
+            List<String> expectedProductNames = new ArrayList<>(actualProductNames);
+            Collections.sort(expectedProductNames, Collections.reverseOrder());
+
+            // Compare actual and expected lists
+            if (actualProductNames.equals(expectedProductNames)) {
+                System.out.println("Test Passed: Products are sorted Z to A");
+            } else {
+                System.out.println("Test Failed: Sorting order is incorrect");
+            }
+
+            // Close the browser
+            browser.close();
+        }
+    }
+}

@@ -1,0 +1,46 @@
+import com.microsoft.playwright.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class PriceOrderPlaywright {
+    public static void main(String[] args) {
+        // Set up Playwright and launch the browser
+        try (Playwright playwright = Playwright.create()) {
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
+            BrowserContext context = browser.newContext();
+            Page page = context.newPage();
+
+            // Navigate to the SauceDemo website
+            page.navigate("https://www.saucedemo.com/");
+
+            // Login with credentials
+            page.locator("#user-name").fill("visual_user");
+            page.locator("#password").fill("secret_sauce");
+            page.locator("#login-button").click();
+
+            // Select sorting by Price (high to low)
+            page.locator(".product_sort_container").selectOption("hilo");
+
+            // Get all product prices after sorting
+            List<String> productPricesText = page.locator(".inventory_item_price").allTextContents();
+            List<Double> actualPrices = new ArrayList<>();
+            for (String priceText : productPricesText) {
+                actualPrices.add(Double.parseDouble(priceText.replace("$", "")));
+            }
+
+            // Verify the price order (high to low)
+            List<Double> expectedPrices = new ArrayList<>(actualPrices);
+            Collections.sort(expectedPrices, Collections.reverseOrder());
+
+            if (actualPrices.equals(expectedPrices)) {
+                System.out.println("Test Passed: Prices are sorted high to low");
+            } else {
+                System.out.println("Test Failed: Price sorting order is incorrect");
+            }
+
+            // Close the browser
+            browser.close();
+        }
+    }
+}
